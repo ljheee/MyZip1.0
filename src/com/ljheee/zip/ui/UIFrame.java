@@ -3,13 +3,20 @@ package com.ljheee.zip.ui;
 import java.awt.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.zip.ZipFile;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
+
+import com.ljheee.ziptool.core.CompactAlgorithm;
+import com.ljheee.ziptool.core.UnZipFile;
+
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.LayoutStyle.ComponentPlacement;
 
@@ -27,12 +34,11 @@ public class UIFrame {
 	private JLabel pathInfo = new JLabel("  ");
 	private JLabel timeInfo = new JLabel("  ");
 
-	JMenuItem openFileItem, exitItem, findFileItem, viewLogItem, delLogItem, aboutItem;
+	private JMenuItem openFileItem, exitItem, findFileItem, viewLogItem, delLogItem, aboutItem;
 	private JMenuItem switchSuanfa;
 
 
 	ActionHandle handle = new ActionHandle();
-	MyMenuHandler menuHandle = new MyMenuHandler();
 	
 	private JTextField srcFiles;
 	private JTextField destZip;
@@ -42,9 +48,12 @@ public class UIFrame {
 	JButton btn_srcFiles,btn_destZip,compact,btn_srcZip,btn_destFiles,unCompact;
 	JFileChooser fileChooser = new JFileChooser();
 	
+	JCheckBox checkBox = null;
+	
 	File src = null;
 	File dest = null;
-	
+	File src2 = null;
+	File dest2 = null;
 
 	public UIFrame() {
 		
@@ -112,21 +121,21 @@ public class UIFrame {
 		JPanel centerP = new JPanel();
 		jf.getContentPane().add(centerP, BorderLayout.CENTER);
 		
-		JLabel label = new JLabel("\u5F85\u538B\u7F29\u6587\u4EF6\u6E90\uFF1A");
+		JLabel label = new JLabel("\u5F85\u538B\u7F29\u6587\u4EF6\u6E90\uFF1A");//待压缩的文件源
 		
 		srcFiles = new JTextField();
 		srcFiles.setColumns(10);
 		
 		//浏览srcFiles--压缩
-		btn_srcFiles = new JButton("\u6D4F\u89C8");
+		btn_srcFiles = new JButton("\u6D4F\u89C8");//浏览
 		
-		JLabel label_1 = new JLabel("\u538B\u7F29\u5230\uFF1A");
+		JLabel label_1 = new JLabel("\u538B\u7F29\u5230\uFF1A");//压缩到:
 		
 		destZip = new JTextField();
 		destZip.setColumns(10);
 		
 		//view destZip
-		btn_destZip = new JButton("\u6D4F\u89C8");
+		btn_destZip = new JButton("\u6D4F\u89C8");//浏览
 		
 		//压缩
 		compact = new JButton("\u538B\u7F29");
@@ -161,6 +170,9 @@ public class UIFrame {
 		compact.addActionListener(handle);
 		unCompact.addActionListener(handle);
 		
+		//解压后删除源
+		checkBox = new JCheckBox("\u89E3\u538B\u540E\u5220\u9664\u6E90");
+		
 		
 		GroupLayout gl_centerP = new GroupLayout(centerP);
 		gl_centerP.setHorizontalGroup(
@@ -183,15 +195,17 @@ public class UIFrame {
 						.addGroup(gl_centerP.createSequentialGroup()
 							.addComponent(btn_srcZip)
 							.addContainerGap())
-						.addGroup(gl_centerP.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_centerP.createParallelGroup(Alignment.TRAILING)
 							.addGroup(gl_centerP.createSequentialGroup()
 								.addComponent(btn_srcFiles)
 								.addContainerGap(206, Short.MAX_VALUE))
-							.addGroup(Alignment.TRAILING, gl_centerP.createSequentialGroup()
+							.addGroup(gl_centerP.createSequentialGroup()
 								.addGroup(gl_centerP.createParallelGroup(Alignment.LEADING)
 									.addComponent(btn_destZip)
 									.addComponent(btn_destFiles))
-								.addPreferredGap(ComponentPlacement.RELATED, 98, Short.MAX_VALUE)
+								.addPreferredGap(ComponentPlacement.RELATED)
+								.addComponent(checkBox)
+								.addPreferredGap(ComponentPlacement.RELATED, 29, Short.MAX_VALUE)
 								.addGroup(gl_centerP.createParallelGroup(Alignment.LEADING)
 									.addComponent(unCompact)
 									.addComponent(compact))
@@ -222,15 +236,11 @@ public class UIFrame {
 						.addComponent(label_3)
 						.addComponent(destFiles, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btn_destFiles)
-						.addComponent(unCompact))
-					.addContainerGap(200, Short.MAX_VALUE))
+						.addComponent(unCompact)
+						.addComponent(checkBox))
+					.addContainerGap(184, Short.MAX_VALUE))
 		);
 		centerP.setLayout(gl_centerP);
-		
-		
-		
-		
-
 		
 
 		// south--状态栏
@@ -268,7 +278,7 @@ public class UIFrame {
 	 */
 	class ActionHandle implements ActionListener {
 
-		Thread t1;
+		File f = null;
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -288,64 +298,67 @@ public class UIFrame {
 				jf.repaint();
 			}
 
-			if (e.getSource() == switchSuanfa) {// 
+			if (e.getSource() == switchSuanfa) {// 切换压缩算法
 												// 
 			}
 
-			if (e.getSource() == viewLogItem) {// e
+			if (e.getSource() == viewLogItem) {// 查看日志
 
 			}
 
-			if (e.getSource() == delLogItem) {// 
+			if (e.getSource() == delLogItem) {// 删除日志
 				
 			}
 			
+			if (e.getSource() == btn_srcFiles){//选择yao压缩的文件路径
+				fileChooser.showOpenDialog(jf);
+				src = fileChooser.getSelectedFile();
+				System.out.println(src);
+				srcFiles.setText(src.getAbsolutePath());
+			}
 			
-			
+			if (e.getSource() == btn_destZip){//选择压缩的文件--目的路径
+				fileChooser.showOpenDialog(jf);
+				f = fileChooser.getSelectedFile();
+				destZip.setText(f.getAbsolutePath());
+			}
 			if (e.getSource() == compact){//压缩文件
-				
+				dest = new File(f.getAbsolutePath(), src.getName()+".zip");
+				System.out.println(dest.getName());
+				new CompactAlgorithm(dest).zipFiles(src);
+				JOptionPane.showMessageDialog(jf, "压缩完毕");
+			}
+			
+			
+			if (e.getSource() == btn_srcZip){//选择yao解缩的文件
+				fileChooser.showOpenDialog(jf);
+				src2 = fileChooser.getSelectedFile();
+				srcZip.setText(src2.getAbsolutePath());
+			}
+			if (e.getSource() == btn_destFiles){//选择解缩文件--目的路径
+				fileChooser.showOpenDialog(jf);
+				dest2 = fileChooser.getSelectedFile();
+				destFiles.setText(dest2.getAbsolutePath());
 			}
 			if (e.getSource() == unCompact){//解压文件
-				
+				File src22 = new File(src2.getAbsolutePath());
+				src2 = null;
+				System.gc();
+				try {
+					UnZipFile.unZipFiles(src22, dest2.getAbsolutePath().replaceAll("\\*", "/")+"/");
+					if(checkBox.isSelected()){
+						boolean b = src22.delete();//解压后删除源
+						
+						System.out.println("解压后删除源"+b);
+					}
+					JOptionPane.showMessageDialog(jf, "解压完毕");
+				} catch (IOException e1) {
+					e1.printStackTrace();
+					JOptionPane.showMessageDialog(jf, "解压Error"+e1.getMessage());
+				}
 			}
-			
-			if (e.getSource() == btn_srcFiles){//选择文件路径
-				fileChooser.showOpenDialog(jf);
-				srcFiles.setText(fileChooser.getSelectedFile().getAbsolutePath());
-			}
-			
-			if (e.getSource() == btn_destZip){//
-				fileChooser.showOpenDialog(jf);
-				destZip.setText(fileChooser.getSelectedFile().getAbsolutePath());
-			}
+
 		}
 	}
 
-	/**
-	 * Menu事件监听
-	 * @author ljheee
-	 *
-	 */
-	class MyMenuHandler implements MenuListener {
-
-		@Override
-		public void menuCanceled(MenuEvent e) {
-		}
-		@Override
-		public void menuDeselected(MenuEvent e) {
-		}
-
-		@Override
-		public void menuSelected(MenuEvent e) {
-
-		}
-		
-
-	}
-	
-	
-
-	public static void main(String[] args) {
-		new UIFrame();
-	}
 }

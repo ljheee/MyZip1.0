@@ -38,15 +38,22 @@ public class CompactAlgorithm {
 	 * 
 	 * @param srcfile
 	 */
-	public void zipFiles(File[] srcfile) {
+	public void zipFiles(File srcfile) {
 
 		ZipOutputStream out = null;
 		try {
 			out = new ZipOutputStream(new FileOutputStream(targetFile));
-
-			for (int i = 0; i < srcfile.length; i++) {
-				compress(srcfile[i], out, "");
+			
+			if(srcfile.isFile()){
+				zipFile(srcfile, out, "");
+			} else{
+				File[] list = srcfile.listFiles();
+				for (int i = 0; i < list.length; i++) {
+					compress(list[i], out, "");
+				}
 			}
+
+			
 			
 			System.out.println("压缩完毕");
 		} catch (Exception e) {
@@ -62,6 +69,7 @@ public class CompactAlgorithm {
 	}
 
 	/**
+	 * 压缩文件夹里的文件
 	 * 起初不知道是文件还是文件夹 统一调用该方法
 	 * @param file
 	 * @param out
@@ -158,8 +166,10 @@ public class CompactAlgorithm {
 			e.printStackTrace();
 		}
 	}
+	
 	public static void main(String[] args) {
-		new CompactAlgorithm().unZipFiles(new File("E:/Study/text.zip"), "D:/test/");
+		File f = new File("E:/Study/Java");
+		new CompactAlgorithm(new File( "D:/test",f.getName()+".zip")).zipFiles(f);
 	}
 
 }
