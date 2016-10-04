@@ -14,6 +14,7 @@ import java.io.IOException;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
+import com.ljheee.zip.ui.about.About;
 import com.ljheee.ziptool.core.CompactAlgorithm;
 import com.ljheee.ziptool.core.UnZipFile;
 
@@ -291,7 +292,8 @@ public class UIFrame {
 			}
 
 			if (e.getSource() == aboutItem) {// show about
-				JOptionPane.showMessageDialog(jf, "@Author:ljheee \n 2016");
+//				JOptionPane.showMessageDialog(jf, "@Author:ljheee \n 2016");
+				new About(jf,"¹ØÓÚ",true);
 			}
 
 			if (e.getSource() == findFileItem) {// viewItem 
